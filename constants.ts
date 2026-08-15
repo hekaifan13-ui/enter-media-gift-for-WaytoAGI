@@ -28,6 +28,12 @@ export const TEMPLATES: TemplateConfig[] = [
   }
 ];
 
+// Default WaytoAGI brand logos (two contrast variants)
+export const DEFAULT_LOGOS: Record<'black-text' | 'white-text', string> = {
+  'black-text': 'https://cdn.enter.pro/resources/uid_100037804/10dd2493-d087-4a.png',
+  'white-text': 'https://cdn.enter.pro/resources/uid_100037804/6ec9ac42-2645-4b.png',
+};
+
 const SHARED_DEFAULTS: Partial<PostcardData> = {
   image: null,
   recipient: "",
@@ -44,7 +50,7 @@ const SHARED_DEFAULTS: Partial<PostcardData> = {
   authors: [],
   authorsLayout: { x: 0, y: 0, scale: 1 },
   authorsTextColor: "#ffffff",
-   logos: ["https://spb-t4n97b8c5i729t7x.supabase.opentrust.net/storage/v1/object/public/uploads/logos/trimmed_1783610955125_f929zd.png"],
+   logos: [DEFAULT_LOGOS['black-text']],
   logoSeparatorColor: "#ffffff",
   logoStyle: "black-text",
 };

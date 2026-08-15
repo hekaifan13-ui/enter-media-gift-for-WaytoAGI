@@ -1,6 +1,7 @@
 
 import React, { useRef, useState, DragEvent, ClipboardEvent, useEffect } from 'react';
 import { PostcardData, TemplateId, Author, ProjectAllData } from '../types';
+import { DEFAULT_LOGOS } from '../constants';
 import { getTemplateComponent } from './CardTemplates';
 import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS, CLASSROOM_BG_PRESETS } from './bgPresets';
 import { OVERLAY_EFFECTS } from './overlayEffects';
@@ -603,9 +604,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
                         onClick={() => {
                           const newStyle = data.logoStyle === 'black-text' ? 'white-text' : 'black-text';
                           updateData('logoStyle', newStyle);
-                          updateData('logos', [newStyle === 'black-text' 
-                            ? 'https://spb-t4n97b8c5i729t7x.supabase.opentrust.net/storage/v1/object/public/uploads/logos/trimmed_1783610955125_f929zd.png' 
-                            : 'https://spb-t4n97b8c5i729t7x.supabase.opentrust.net/storage/v1/object/public/uploads/logos/trimmed_1783610955359_qev6s8.png']);
+                          updateData('logos', [DEFAULT_LOGOS[newStyle]]);
                         }}
                         className="flex items-center gap-1.5 text-[10px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-full transition-all font-bold"
                       >
