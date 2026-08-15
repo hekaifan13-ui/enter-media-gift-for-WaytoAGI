@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppState, TemplateId, PostcardData, Author, ProjectAllData } from './types';
 import { INITIAL_PROJECT_DATA } from './constants';
 import IntroBox from './components/IntroBox';
@@ -6,10 +6,14 @@ import Editor from './components/Editor';
 import ProjectList from './components/ProjectList';
 import GuestLibrary from './components/GuestLibrary';
 import LogoLibrary from './components/LogoLibrary';
+import LandingPage from './components/LandingPage';
 import { ProjectMeta, getProject, createProject } from './services/storageService';
+import { Sparkles } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [appState, setAppState] = useState<AppState>(AppState.PROJECTS);
+  const [appState, setAppState] = useState<AppState>(() =>
+    window.location.hash === '#landing' ? AppState.LANDING : AppState.PROJECTS
+  );
   const [projectData, setProjectData] = useState<ProjectAllData>({ ...INITIAL_PROJECT_DATA });
   const [activeTemplate, setActiveTemplate] = useState<TemplateId>(TemplateId.LIVESTREAM);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
@@ -17,6 +21,30 @@ const App: React.FC = () => {
 
   // Current template's data (derived)
   const currentData = projectData[activeTemplate];
+
+  // ── Landing Page (standalone, reachable via #landing) ──
+  useEffect(() => {
+    const sync = () => {
+      const hash = window.location.hash;
+      if (hash === '#landing') {
+        setAppState(AppState.LANDING);
+      } else if (hash === '') {
+        setAppState(prev => (prev === AppState.LANDING ? AppState.PROJECTS : prev));
+      }
+    };
+    window.addEventListener('hashchange', sync);
+    return () => window.removeEventListener('hashchange', sync);
+  }, []);
+
+  const handleOpenLanding = () => {
+    window.location.hash = 'landing';
+    setAppState(AppState.LANDING);
+  };
+
+  const handleLeaveLanding = () => {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    setAppState(AppState.PROJECTS);
+  };
 
   // ── Project List ──
   const handleNewProject = () => {
@@ -117,11 +145,22 @@ const App: React.FC = () => {
 
   return (
     <div className="w-full h-screen overflow-hidden text-gray-800">
-      {appState === AppState.PROJECTS ? (
-        <ProjectList
-          onNewProject={handleNewProject}
-          onLoadProject={handleLoadProject}
-        />
+      {appState === AppState.LANDING ? (
+        <LandingPage onStart={handleLeaveLanding} />
+      ) : appState === AppState.PROJECTS ? (
+        <>
+          <ProjectList
+            onNewProject={handleNewProject}
+            onLoadProject={handleLoadProject}
+          />
+          <button
+            onClick={handleOpenLanding}
+            className="fixed bottom-6 left-6 z-40 flex items-center gap-2 rounded-full border border-white/70 bg-white/70 backdrop-blur-xl px-4 py-2.5 text-[12px] font-semibold text-slate-600 shadow-lg hover:bg-white hover:text-slate-900 transition-all active:scale-95"
+          >
+            <Sparkles size={14} className="text-cyan-600" />
+            落地页 <span className="opacity-50 font-normal">Landing</span>
+          </button>
+        </>
       ) : appState === AppState.INTRO || appState === AppState.SELECTION ? (
         <IntroBox 
           onOpen={handleBoxOpen} 

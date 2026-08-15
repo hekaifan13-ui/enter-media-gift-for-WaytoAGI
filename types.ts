@@ -1,5 +1,6 @@
 
 export enum AppState {
+  LANDING = 'LANDING',
   PROJECTS = 'PROJECTS',
   INTRO = 'INTRO',
   SELECTION = 'SELECTION',
