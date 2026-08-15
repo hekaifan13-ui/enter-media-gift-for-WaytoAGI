@@ -4,6 +4,7 @@ import { PostcardData, TemplateId } from '../types';
 import { Feather, FileCode, GitBranch, Search, Settings, Layout, QrCode, User, Image as ImageIcon } from 'lucide-react';
 import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS, CLASSROOM_BG_PRESETS } from './bgPresets';
 import { OVERLAY_EFFECTS } from './overlayEffects';
+import { DEFAULT_LOGO_SCALE } from '../constants';
 
 // Grain noise SVG data URI for granular texture overlay
 const GRAIN_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`;
@@ -108,16 +109,16 @@ const LogoImage = ({
   isDark?: boolean;
   heightClass?: string;
 }) => {
-  const logoScale = data.logoScales?.[index] ?? 1;
+  const logoScale = data.logoScales?.[index] ?? DEFAULT_LOGO_SCALE;
 
   const handleWheel = (e: React.WheelEvent) => {
     if (isExporting || !onUpdateData || !selected) return;
     e.stopPropagation();
     e.preventDefault();
     const scales = [...(data.logoScales || [])];
-    while (scales.length < (data.logos?.length || 0)) scales.push(1);
+    while (scales.length < (data.logos?.length || 0)) scales.push(DEFAULT_LOGO_SCALE);
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
-    scales[index] = Math.min(Math.max((scales[index] ?? 1) + delta, 0.3), 4.0);
+    scales[index] = Math.min(Math.max((scales[index] ?? DEFAULT_LOGO_SCALE) + delta, 0.3), 6.0);
     onUpdateData('logoScales', scales);
   };
 

@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, DragEvent, ClipboardEvent, useEffect } from 'react';
 import { PostcardData, TemplateId, Author, ProjectAllData } from '../types';
-import { DEFAULT_LOGOS } from '../constants';
+import { DEFAULT_LOGOS, DEFAULT_LOGO_SCALE } from '../constants';
 import { getTemplateComponent } from './CardTemplates';
 import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS, CLASSROOM_BG_PRESETS } from './bgPresets';
 import { OVERLAY_EFFECTS } from './overlayEffects';
@@ -192,9 +192,9 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
      newLogos.splice(to, 0, movedLogo);
      updateData('logos', newLogos);
      const scales = [...(data.logoScales || [])];
-     while (scales.length < (data.logos?.length || 0)) scales.push(1);
+     while (scales.length < (data.logos?.length || 0)) scales.push(DEFAULT_LOGO_SCALE);
      const [movedScale] = scales.splice(from, 1);
-     scales.splice(to, 0, movedScale ?? 1);
+     scales.splice(to, 0, movedScale ?? DEFAULT_LOGO_SCALE);
      updateData('logoScales', scales);
   };
 

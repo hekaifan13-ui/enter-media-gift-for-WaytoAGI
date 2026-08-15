@@ -34,6 +34,9 @@ export const DEFAULT_LOGOS: Record<'black-text' | 'white-text', string> = {
   'white-text': 'https://cdn.enter.pro/resources/uid_100037804/6ec9ac42-2645-4b.png',
 };
 
+// Default logo display scale (1 = original template size)
+export const DEFAULT_LOGO_SCALE = 2;
+
 const SHARED_DEFAULTS: Partial<PostcardData> = {
   image: null,
   recipient: "",
@@ -51,6 +54,7 @@ const SHARED_DEFAULTS: Partial<PostcardData> = {
   authorsLayout: { x: 0, y: 0, scale: 1 },
   authorsTextColor: "#ffffff",
    logos: [DEFAULT_LOGOS['black-text']],
+   logoScales: [DEFAULT_LOGO_SCALE],
   logoSeparatorColor: "#ffffff",
   logoStyle: "black-text",
 };
