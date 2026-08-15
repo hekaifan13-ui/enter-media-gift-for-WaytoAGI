@@ -3467,6 +3467,33 @@ export type Database = {
           },
         ]
       }
+      guests: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          name: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       interview_feedback: {
         Row: {
           ai_summary: Json | null
@@ -3838,6 +3865,30 @@ export type Database = {
           },
         ]
       }
+      logos: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -4065,6 +4116,36 @@ export type Database = {
           full_name?: string | null
           id?: string
           title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          template_id: string
+          thumbnail: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          template_id: string
+          thumbnail?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          template_id?: string
+          thumbnail?: string | null
+          title?: string
           updated_at?: string
         }
         Relationships: []

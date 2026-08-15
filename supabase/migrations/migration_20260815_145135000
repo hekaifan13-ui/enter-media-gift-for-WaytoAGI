@@ -1,0 +1,70 @@
+-- Projects table: stores all poster project data
+CREATE TABLE IF NOT EXISTS public.projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL DEFAULT 'Untitled Project',
+  template_id TEXT NOT NULL,
+  data JSONB NOT NULL DEFAULT '{}',
+  thumbnail TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to projects" ON public.projects FOR ALL USING (true) WITH CHECK (true);
+
+-- Guests table: reusable guest information
+CREATE TABLE IF NOT EXISTS public.guests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL DEFAULT '',
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.guests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to guests" ON public.guests FOR ALL USING (true) WITH CHECK (true);
+
+-- Logos table: reusable logo library
+CREATE TABLE IF NOT EXISTS public.logos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL DEFAULT '',
+  url TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.logos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to logos" ON public.logos FOR ALL USING (true) WITH CHECK (true);
+
+-- Storage bucket for uploads (poster images, logos, avatars)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('uploads', 'uploads', true)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "Allow public uploads" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public read uploads" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public update uploads" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public delete uploads" ON storage.objects;
+
+CREATE POLICY "Allow public uploads" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'uploads');
+CREATE POLICY "Allow public read uploads" ON storage.objects FOR SELECT USING (bucket_id = 'uploads');
+CREATE POLICY "Allow public update uploads" ON storage.objects FOR UPDATE USING (bucket_id = 'uploads');
+CREATE POLICY "Allow public delete uploads" ON storage.objects FOR DELETE USING (bucket_id = 'uploads');
+
+-- Auto-update updated_at
+CREATE OR REPLACE FUNCTION public.update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS projects_updated_at ON public.projects;
+DROP TRIGGER IF EXISTS guests_updated_at ON public.guests;
+DROP TRIGGER IF EXISTS logos_updated_at ON public.logos;
+
+CREATE TRIGGER projects_updated_at BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+CREATE TRIGGER guests_updated_at BEFORE UPDATE ON public.guests FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+CREATE TRIGGER logos_updated_at BEFORE UPDATE ON public.logos FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
