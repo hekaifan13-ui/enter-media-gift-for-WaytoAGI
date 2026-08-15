@@ -87,6 +87,57 @@ interface TemplateProps {
   exportAnimPhase?: number;
 }
 
+// Safe distance (in card pixels) every logo group keeps from the card edges.
+export const LOGO_SAFE_MARGIN = 32;
+
+/**
+ * Keeps a dragged/scaled logo group inside the card's safe area.
+ * `baseRect` is the group's on-screen rect with the current offset removed.
+ */
+const clampToSafeArea = (
+  baseRect: { left: number; top: number; width: number; height: number },
+  cardRect: { left: number; top: number; right: number; bottom: number },
+  offset: { x: number; y: number },
+  cardScale: number,
+  sizeRatio = 1
+): { x: number; y: number } => {
+  const m = LOGO_SAFE_MARGIN * cardScale;
+  const width = baseRect.width * sizeRatio;
+  const height = baseRect.height * sizeRatio;
+
+  const clampAxis = (value: number, baseStart: number, size: number, min: number, max: number) => {
+    const lower = (min + m - baseStart) / cardScale;
+    const upper = (max - m - size - baseStart) / cardScale;
+    return upper < lower ? lower : Math.min(Math.max(value, lower), upper);
+  };
+
+  return {
+    x: clampAxis(offset.x, baseRect.left, width, cardRect.left, cardRect.right),
+    y: clampAxis(offset.y, baseRect.top, height, cardRect.top, cardRect.bottom),
+  };
+};
+
+/** Reads the group's rect with its current translate removed, plus the owning card's rect. */
+const readLogoDragBounds = (
+  groupEl: HTMLElement,
+  offset: { x: number; y: number },
+  cardScale: number
+) => {
+  const cardEl = groupEl.closest('[data-card-root]') as HTMLElement | null;
+  if (!cardEl) return null;
+  const rect = groupEl.getBoundingClientRect();
+  const cardRect = cardEl.getBoundingClientRect();
+  return {
+    baseRect: {
+      left: rect.left - offset.x * cardScale,
+      top: rect.top - offset.y * cardScale,
+      width: rect.width,
+      height: rect.height,
+    },
+    cardRect,
+  };
+};
+
 // Individual logo image with click-to-select + wheel-to-scale (independent per logo)
 const LogoImage = ({
   logo,
@@ -97,7 +148,7 @@ const LogoImage = ({
   selected,
   onSelect,
   isDark,
-  heightClass = 'h-20',
+  baseHeight = 40,
 }: {
   logo: string;
   index: number;
@@ -107,7 +158,8 @@ const LogoImage = ({
   selected: boolean;
   onSelect: (index: number) => void;
   isDark?: boolean;
-  heightClass?: string;
+  /** Rendered logo height at scale 1, in card pixels. */
+  baseHeight?: number;
 }) => {
   const logoScale = data.logoScales?.[index] ?? DEFAULT_LOGO_SCALE;
 
@@ -130,8 +182,7 @@ const LogoImage = ({
 
   return (
     <div
-      className={`relative ${isExporting ? '' : 'cursor-pointer'}`}
-      style={{ transform: `scale(${logoScale})`, transformOrigin: 'center' }}
+      className={`relative shrink-0 ${isExporting ? '' : 'cursor-pointer'}`}
       onWheel={handleWheel}
       onMouseDown={handleClick}
     >
@@ -147,7 +198,13 @@ const LogoImage = ({
           </span>
         </div>
       )}
-      <img src={logo} alt="Logo" crossOrigin="anonymous" className={`${heightClass} w-auto object-contain select-none pointer-events-none`} />
+      <img
+        src={logo}
+        alt="Logo"
+        crossOrigin="anonymous"
+        className="w-auto object-contain select-none pointer-events-none"
+        style={{ height: `${baseHeight * logoScale}px` }}
+      />
     </div>
   );
 };
@@ -209,11 +266,16 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
     const startX = e.clientX;
     const startY = e.clientY;
     const initialLayout = data.logosLayout || { x: 0, y: 0, scale: 1 };
+    const bounds = readLogoDragBounds(e.currentTarget as HTMLElement, initialLayout, scale);
 
     const onMouseMove = (moveEvent: MouseEvent) => {
       const dx = (moveEvent.clientX - startX) / scale;
       const dy = (moveEvent.clientY - startY) / scale;
-      onUpdateData('logosLayout', { ...initialLayout, x: initialLayout.x + dx, y: initialLayout.y + dy });
+      const next = { x: initialLayout.x + dx, y: initialLayout.y + dy };
+      onUpdateData('logosLayout', {
+        ...initialLayout,
+        ...(bounds ? clampToSafeArea(bounds.baseRect, bounds.cardRect, next, scale) : next),
+      });
     };
 
     const onMouseUp = () => {
@@ -231,12 +293,17 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
     const layout = data.logosLayout || { x: 0, y: 0, scale: 1 };
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
     const newScale = Math.min(Math.max(layout.scale + delta, 0.2), 3.0);
-    onUpdateData('logosLayout', { ...layout, scale: newScale });
+    const bounds = readLogoDragBounds(e.currentTarget as HTMLElement, layout, scale);
+    const safe = bounds
+      ? clampToSafeArea(bounds.baseRect, bounds.cardRect, layout, scale, newScale / (layout.scale || 1))
+      : layout;
+    onUpdateData('logosLayout', { ...layout, ...safe, scale: newScale });
   };
 
   return (
     <div 
       ref={ref} 
+      data-card-root
       className={`${isFullPortrait ? 'w-[864px] h-[1180px]' : 'w-[720px] h-[1180px]'} bg-white shadow-xl overflow-hidden relative flex flex-col font-sans transition-all duration-300`} 
       style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
     >
@@ -284,7 +351,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
                       onUpdateData={onUpdateData}
                       selected={selectedLogo === index}
                       onSelect={setSelectedLogo}
-                      heightClass="h-10"
+                      baseHeight={40}
                     />
                     {index < (data.logos?.length || 0) - 1 && (
                       <span className="text-2xl font-light opacity-80 select-none" style={{ color: data.logoSeparatorColor || '#ffffff' }}>丨</span>
@@ -465,7 +532,7 @@ const ModernTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale 
 // 2. Code / Dev
 const CodeTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 1 }, ref) => {
   return (
-    <div ref={ref} className="w-[1080px] h-[720px] bg-[#1e1e1e] shadow-2xl relative overflow-hidden flex flex-col font-mono text-sm" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+    <div ref={ref} data-card-root className="w-[1080px] h-[720px] bg-[#1e1e1e] shadow-2xl relative overflow-hidden flex flex-col font-mono text-sm" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
        {/* Window Bar */}
        <div className="h-12 bg-[#323233] flex items-center px-8 gap-4 border-b border-[#111] shrink-0">
           <div className="flex gap-2.5">
@@ -667,11 +734,16 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
     const startX = e.clientX;
     const startY = e.clientY;
     const initialLayout = data.logosLayout || { x: 0, y: 0, scale: 1 };
+    const bounds = readLogoDragBounds(e.currentTarget as HTMLElement, initialLayout, scale);
 
     const onMouseMove = (moveEvent: MouseEvent) => {
       const dx = (moveEvent.clientX - startX) / scale;
       const dy = (moveEvent.clientY - startY) / scale;
-      onUpdateData('logosLayout', { ...initialLayout, x: initialLayout.x + dx, y: initialLayout.y + dy });
+      const next = { x: initialLayout.x + dx, y: initialLayout.y + dy };
+      onUpdateData('logosLayout', {
+        ...initialLayout,
+        ...(bounds ? clampToSafeArea(bounds.baseRect, bounds.cardRect, next, scale) : next),
+      });
     };
 
     const onMouseUp = () => {
@@ -689,7 +761,11 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
     const layout = data.logosLayout || { x: 0, y: 0, scale: 1 };
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
     const newScale = Math.min(Math.max(layout.scale + delta, 0.2), 3.0);
-    onUpdateData('logosLayout', { ...layout, scale: newScale });
+    const bounds = readLogoDragBounds(e.currentTarget as HTMLElement, layout, scale);
+    const safe = bounds
+      ? clampToSafeArea(bounds.baseRect, bounds.cardRect, layout, scale, newScale / (layout.scale || 1))
+      : layout;
+    onUpdateData('logosLayout', { ...layout, ...safe, scale: newScale });
   };
 
   // SVG mask that keeps the whole card visible EXCEPT a rounded-rect hole where
@@ -711,6 +787,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
   return (
     <div 
       ref={setRefs} 
+      data-card-root
       className={`w-[1440px] h-[810px] shadow-2xl relative overflow-hidden flex flex-col font-sans transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`} 
       style={{ 
         transform: `scale(${scale})`, 
@@ -753,7 +830,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       <EffectOverlay effectId={data.overlayEffect} emoji={data.emojiPattern} />
 
       {/* Top Header Bar */}
-      <div className="px-10 py-6 flex items-center justify-between z-20">
+      <div className="px-10 py-8 flex items-center justify-between z-20">
         <div
           className={`flex items-center gap-6 rounded-3xl px-8 py-4 shadow-sm transition-colors duration-500 ${isDark ? 'border' : ''}`}
           style={{
@@ -816,7 +893,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
                   selected={selectedLogo === index}
                   onSelect={setSelectedLogo}
                   isDark={isDark}
-                  heightClass="h-[38px]"
+                  baseHeight={38}
                 />
                 {index < (data.logos?.length || 0) - 1 && (
                   <span className="text-3xl font-light select-none pointer-events-none" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.3)' }}>丨</span>
@@ -1046,10 +1123,15 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sca
     const startX = e.clientX;
     const startY = e.clientY;
     const initialLayout = data.logosLayout || { x: 0, y: 0, scale: 1 };
+    const bounds = readLogoDragBounds(e.currentTarget as HTMLElement, initialLayout, scale);
     const onMouseMove = (moveEvent: MouseEvent) => {
       const dx = (moveEvent.clientX - startX) / scale;
       const dy = (moveEvent.clientY - startY) / scale;
-      onUpdateData('logosLayout', { ...initialLayout, x: initialLayout.x + dx, y: initialLayout.y + dy });
+      const next = { x: initialLayout.x + dx, y: initialLayout.y + dy };
+      onUpdateData('logosLayout', {
+        ...initialLayout,
+        ...(bounds ? clampToSafeArea(bounds.baseRect, bounds.cardRect, next, scale) : next),
+      });
     };
     const onMouseUp = () => {
       document.removeEventListener('mousemove', onMouseMove);
@@ -1065,7 +1147,11 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sca
     const layout = data.logosLayout || { x: 0, y: 0, scale: 1 };
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
     const newScale = Math.min(Math.max(layout.scale + delta, 0.2), 3.0);
-    onUpdateData('logosLayout', { ...layout, scale: newScale });
+    const bounds = readLogoDragBounds(e.currentTarget as HTMLElement, layout, scale);
+    const safe = bounds
+      ? clampToSafeArea(bounds.baseRect, bounds.cardRect, layout, scale, newScale / (layout.scale || 1))
+      : layout;
+    onUpdateData('logosLayout', { ...layout, ...safe, scale: newScale });
   };
 
   // Guest avatar image drop/paste handler factory
@@ -1114,6 +1200,7 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sca
   return (
     <div
       ref={setRefs}
+      data-card-root
       className={`w-[1440px] h-[810px] shadow-2xl relative overflow-hidden flex flex-col font-sans transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`}
       style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
     >
@@ -1169,7 +1256,7 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sca
                   selected={selectedLogo === index}
                   onSelect={setSelectedLogo}
                   isDark={isDark}
-                  heightClass="h-[39px]"
+                  baseHeight={39}
                 />
                 {index < (data.logos?.length || 0) - 1 && (
                   <span className="text-3xl font-light select-none pointer-events-none" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.25)' }}>丨</span>
