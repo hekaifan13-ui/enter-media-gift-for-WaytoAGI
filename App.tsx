@@ -8,7 +8,6 @@ import GuestLibrary from './components/GuestLibrary';
 import LogoLibrary from './components/LogoLibrary';
 import LandingPage from './components/LandingPage';
 import { ProjectMeta, getProject, createProject } from './services/storageService';
-import { Sparkles } from 'lucide-react';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(() =>
@@ -148,19 +147,11 @@ const App: React.FC = () => {
       {appState === AppState.LANDING ? (
         <LandingPage onStart={handleLeaveLanding} />
       ) : appState === AppState.PROJECTS ? (
-        <>
-          <ProjectList
-            onNewProject={handleNewProject}
-            onLoadProject={handleLoadProject}
-          />
-          <button
-            onClick={handleOpenLanding}
-            className="fixed bottom-6 left-6 z-40 flex items-center gap-2 rounded-full border border-white/70 bg-white/70 backdrop-blur-xl px-4 py-2.5 text-[12px] font-semibold text-slate-600 shadow-lg hover:bg-white hover:text-slate-900 transition-all active:scale-95"
-          >
-            <Sparkles size={14} className="text-cyan-600" />
-            落地页 <span className="opacity-50 font-normal">Landing</span>
-          </button>
-        </>
+        <ProjectList
+          onNewProject={handleNewProject}
+          onLoadProject={handleLoadProject}
+          onOpenLanding={handleOpenLanding}
+        />
       ) : appState === AppState.INTRO || appState === AppState.SELECTION ? (
         <IntroBox 
           onOpen={handleBoxOpen} 

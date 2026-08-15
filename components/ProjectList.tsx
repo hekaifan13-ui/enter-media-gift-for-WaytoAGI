@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Layout, Search, Clock, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Layout, Search, Clock, AlertTriangle, Sparkles } from 'lucide-react';
 import { ProjectMeta, getProjects, deleteProject } from '../services/storageService';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ProjectListProps {
   onNewProject: () => void;
   onLoadProject: (project: ProjectMeta) => void;
+  onOpenLanding: () => void;
 }
 
 const TABS = ['All', 'Recent', 'Favorites'];
 
-const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }) => {
+const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject, onOpenLanding }) => {
   const [projects, setProjects] = useState<ProjectMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
@@ -104,24 +105,35 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject }
             </nav>
           </div>
 
-          {/* Search Bar */}
-          <div className={`mt-6 md:mt-0 flex-grow max-w-[400px] mx-8 transition-all duration-500 ${searchFocused ? 'scale-105' : ''}`}>
-            <div className={`relative transition-all duration-300 ${searchFocused ? 'shadow-lg shadow-gray-200/50 rounded-full' : ''}`}>
-              <div className={`absolute inset-y-0 left-4 flex items-center pointer-events-none transition-transform duration-300 ${searchFocused ? 'scale-110' : ''}`}>
-                <Search className={`w-4 h-4 transition-colors duration-300 ${searchFocused ? 'text-black' : 'text-gray-400'}`} />
+          {/* Search Bar + Landing entry */}
+          <div className="mt-6 md:mt-0 flex-grow max-w-[520px] mx-8 flex items-center gap-3">
+            <div className={`flex-grow transition-all duration-500 ${searchFocused ? 'scale-105' : ''}`}>
+              <div className={`relative transition-all duration-300 ${searchFocused ? 'shadow-lg shadow-gray-200/50 rounded-full' : ''}`}>
+                <div className={`absolute inset-y-0 left-4 flex items-center pointer-events-none transition-transform duration-300 ${searchFocused ? 'scale-110' : ''}`}>
+                  <Search className={`w-4 h-4 transition-colors duration-300 ${searchFocused ? 'text-black' : 'text-gray-400'}`} />
+                </div>
+                <input
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  placeholder="Search projects..."
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  className={`w-full h-12 pl-11 pr-4 border-none rounded-full text-[14px] focus:outline-none transition-all duration-300 ${
+                    searchFocused ? 'bg-white ring-2 ring-black/10 placeholder-gray-400' : 'bg-[#F2F2F2] placeholder-gray-500'
+                  }`}
+                />
               </div>
-              <input
-                type="text"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="Search projects..."
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-                className={`w-full h-12 pl-11 pr-4 border-none rounded-full text-[14px] focus:outline-none transition-all duration-300 ${
-                  searchFocused ? 'bg-white ring-2 ring-black/10 placeholder-gray-400' : 'bg-[#F2F2F2] placeholder-gray-500'
-                }`}
-              />
             </div>
+
+            <button
+              onClick={onOpenLanding}
+              title="查看落地页 / View landing page"
+              className="shrink-0 h-12 flex items-center gap-2 px-4 rounded-full bg-[#F2F2F2] hover:bg-gray-200 text-[13px] font-medium text-gray-600 hover:text-black transition-all active:scale-95"
+            >
+              <Sparkles size={15} className="text-cyan-600" />
+              <span className="hidden lg:inline">Landing</span>
+            </button>
           </div>
 
           {/* New Project Button */}
