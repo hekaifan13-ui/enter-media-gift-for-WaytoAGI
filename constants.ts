@@ -29,7 +29,7 @@ export const TEMPLATES: TemplateConfig[] = [
   {
     id: TemplateId.CARD5,
     name: "名片5",
-    description: "Classroom layout in WaytoAGI brand style: flat blocks, square corners.",
+    description: "Live Stream layout in WaytoAGI brand style: flat blocks, square corners.",
     previewColor: "#0066e0",
     isNew: true
   }
@@ -96,12 +96,8 @@ export const INITIAL_PROJECT_DATA: ProjectAllData = {
   [TemplateId.CARD5]: {
     ...SHARED_DEFAULTS,
     templateId: TemplateId.CARD5,
-    classTitle: "在此输入课堂主标题",
-    classTitleFontSize: 44,
-    classSections: ["章节一", "章节二", "章节三", "章节四"],
-    qr1Text: "扫码进群",
-    qrSubText: "在此输入说明文字",
-    classBgStyle: "brand",
+    liveTopic: "",
+    bgStyle: "brand",
   } as PostcardData,
 };
 

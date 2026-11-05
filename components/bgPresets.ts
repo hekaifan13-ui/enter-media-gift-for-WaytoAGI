@@ -361,8 +361,8 @@ function brandPalette(first: keyof typeof BRAND_COLORS): { bg: string; fg: strin
   }));
 }
 
-// Card 5 presets: the 4 Card 4 colour schemes in brand colours, plus every Card 4 preset itself
-const BRAND_ONLY_PRESETS: Record<string, BgPreset> = {
+// Card 5 presets: four flat brand colour schemes (no gradients, glows or grain)
+export const CARD5_BG_PRESETS: Record<string, BgPreset> = {
   'brand': {
     label: '品牌',
     bg: '#ffffff',
@@ -374,7 +374,7 @@ const BRAND_ONLY_PRESETS: Record<string, BgPreset> = {
     palette: brandPalette('orange'),
   },
   'brand-green': {
-    label: '青竹·品牌',
+    label: '青竹',
     bg: '#f3faf6',
     shadowColor: '#f3faf6',
     grainOpacity: 0,
@@ -384,7 +384,7 @@ const BRAND_ONLY_PRESETS: Record<string, BgPreset> = {
     palette: brandPalette('green'),
   },
   'brand-blue': {
-    label: '晴空·品牌',
+    label: '晴空',
     bg: '#f2f7ff',
     shadowColor: '#f2f7ff',
     grainOpacity: 0,
@@ -394,7 +394,7 @@ const BRAND_ONLY_PRESETS: Record<string, BgPreset> = {
     palette: brandPalette('blue'),
   },
   'brand-night': {
-    label: '夜课·品牌',
+    label: '夜课',
     bg: '#0a0a0a',
     shadowColor: '#0a0a0a',
     grainOpacity: 0,
@@ -403,9 +403,4 @@ const BRAND_ONLY_PRESETS: Record<string, BgPreset> = {
     accentSoft: '#e6d6ff',
     palette: brandPalette('purple'),
   },
-};
-
-export const CARD5_BG_PRESETS: Record<string, BgPreset> = {
-  ...BRAND_ONLY_PRESETS,
-  ...CLASSROOM_BG_PRESETS,
 };

@@ -626,17 +626,30 @@ const CodeTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 
 });
 
 // 3. Livestream Template
-const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 1, onUpdateData, isExporting = false, exportAnimPhase }, ref) => {
+// `variant="brand"` renders the same layout as 名片5 in the WaytoAGI brand style:
+// flat colour blocks, square corners, geometric sans-serif.
+type CardVariant = 'classic' | 'brand';
+const BRAND_FONT = `'Outfit', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif`;
+
+const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?: CardVariant }>(({ data, scale = 1, onUpdateData, isExporting = false, exportAnimPhase, variant = 'classic' }, ref) => {
+  const brand = variant === 'brand';
+  const presets = brand ? CARD5_BG_PRESETS : LIVESTREAM_BG_PRESETS;
   // Resolve background preset — fallback to theme-based solid for backwards compat
-  const bgKey = data.bgStyle || (data.theme === 'dark' ? 'solid-dark' : 'nebula-light');
-  const bgPreset = LIVESTREAM_BG_PRESETS[bgKey] ?? LIVESTREAM_BG_PRESETS['nebula-light'];
+  const defaultBgKey = brand ? 'brand' : 'nebula-light';
+  const bgKey = data.bgStyle || (!brand && data.theme === 'dark' ? 'solid-dark' : defaultBgKey);
+  const bgPreset = presets[bgKey] ?? presets[defaultBgKey];
   const isDark = bgPreset.isDark;
 
   // Accent color adapts to the selected background (falls back to indigo)
   const accent = bgPreset.accent || '#6366f1';
   const accentSoft = bgPreset.accentSoft || '#c7d2fe';
-  // Badge text color on the accent-filled "直播主题" label — dark accents get white text
-  const badgeBg = isDark ? hexToRgba(accent, 0.85) : accent;
+  // Badge on the accent-filled "直播主题" label — brand picks black/white for contrast, classic is always white
+  const badgeBg = brand ? accent : isDark ? hexToRgba(accent, 0.85) : accent;
+  const badgeFg = brand ? readableOn(accent) : '#ffffff';
+  // Brand style: square corners and flat 4px strokes. Classic: rounded corners.
+  const frameRadius = brand ? 0 : 32;
+  const frameBorder = brand ? 4 : 3;
+  const roundedFull = brand ? '' : 'rounded-full';
 
   const [selectedLogo, setSelectedLogo] = useState<number | null>(null);
 
@@ -772,7 +785,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
   // the visual frame sits — so the background is "cut out" there (transparent on export).
   const holeMask = hole
     ? `url("data:image/svg+xml,${encodeURIComponent(
-        `<svg xmlns='http://www.w3.org/2000/svg' width='1440' height='810'><defs><mask id='m'><rect width='1440' height='810' fill='white'/><rect x='${hole.x}' y='${hole.y}' width='${hole.w}' height='${hole.h}' rx='32' ry='32' fill='black'/></mask></defs><rect width='1440' height='810' fill='white' mask='url(#m)'/></svg>`
+        `<svg xmlns='http://www.w3.org/2000/svg' width='1440' height='810'><defs><mask id='m'><rect width='1440' height='810' fill='white'/><rect x='${hole.x}' y='${hole.y}' width='${hole.w}' height='${hole.h}' rx='${frameRadius}' ry='${frameRadius}' fill='black'/></mask></defs><rect width='1440' height='810' fill='white' mask='url(#m)'/></svg>`
       )}")`
     : undefined;
   const maskStyle: React.CSSProperties = holeMask
@@ -788,10 +801,11 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
     <div 
       ref={setRefs} 
       data-card-root
-      className={`w-[1440px] h-[810px] shadow-2xl relative overflow-hidden flex flex-col font-sans transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`} 
+      className={`w-[1440px] h-[810px] shadow-2xl relative overflow-hidden flex flex-col ${brand ? '' : 'font-sans'} transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`} 
       style={{ 
         transform: `scale(${scale})`, 
         transformOrigin: 'top left',
+        ...(brand ? { fontFamily: BRAND_FONT } : {}),
       }}
     >
       {/* Background + glows + grain, all inside a masked layer so the visual frame area is cut out (transparent) */}
@@ -829,34 +843,45 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       {/* Effect overlay (holographic, foil, stamp) */}
       <EffectOverlay effectId={data.overlayEffect} emoji={data.emojiPattern} />
 
+      {/* Brand colour strip — flat blocks echoing the stepped brand mark */}
+      {brand && bgPreset.palette && (
+        <div className="absolute top-0 left-0 right-0 h-3 flex z-20 pointer-events-none">
+          {bgPreset.palette.map((c, i) => (
+            <div key={i} style={{ background: c.bg, flex: i === 0 ? 3 : 1 }} />
+          ))}
+        </div>
+      )}
+
       {/* Top Header Bar */}
       <div className="px-10 py-8 flex items-center justify-between z-20">
         <div
-          className={`flex items-center gap-6 rounded-3xl px-8 py-4 shadow-sm transition-colors duration-500 ${isDark ? 'border' : ''}`}
+          className={`flex items-center gap-6 px-8 py-4 transition-colors duration-500 ${brand ? '' : 'rounded-3xl shadow-sm'}`}
           style={{
             transform: `scale(${topicScale})`,
             transformOrigin: 'left center',
             background: isDark ? hexToRgba(accent, 0.18) : accentSoft,
-            borderColor: isDark ? hexToRgba(accent, 0.4) : 'transparent',
-            boxShadow: `0 0 ${topicGlow}px ${hexToRgba(accent, topicGlowOpacity)}`,
+            borderStyle: 'solid',
+            borderWidth: brand ? frameBorder : isDark ? 1 : 0,
+            borderColor: brand ? accent : isDark ? hexToRgba(accent, 0.4) : 'transparent',
+            boxShadow: brand ? 'none' : `0 0 ${topicGlow}px ${hexToRgba(accent, topicGlowOpacity)}`,
           }}
         >
           <span
-            className="flex items-center gap-2.5 text-white text-xl font-black px-5 py-2 rounded-2xl whitespace-nowrap"
-            style={{ background: badgeBg }}
+            className={`flex items-center gap-2.5 text-xl font-black px-5 py-2 whitespace-nowrap ${brand ? '' : 'rounded-2xl'}`}
+            style={{ background: badgeBg, color: badgeFg }}
           >
             <span
-              className="w-2.5 h-2.5 rounded-full bg-[#ff3b3b]"
+              className={`w-2.5 h-2.5 ${roundedFull} bg-[#ff3b3b]`}
               style={{
                 transform: `scale(${liveDotScale})`,
                 opacity: liveDotOpacity,
-                boxShadow: `0 0 ${4 + breath * 10}px rgba(255,59,59,${0.6 * liveDotOpacity + 0.3})`,
+                boxShadow: brand ? 'none' : `0 0 ${4 + breath * 10}px rgba(255,59,59,${0.6 * liveDotOpacity + 0.3})`,
               }}
             />
             直播主题
           </span>
           <h1 
-            className={`font-black truncate max-w-[1000px] transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`}
+            className={`${brand ? 'font-extrabold' : 'font-black'} truncate max-w-[1000px] transition-colors duration-500 ${isDark ? 'text-white' : brand ? 'text-black' : 'text-gray-900'}`}
             style={{ letterSpacing: `${data.liveTopicSpacing ?? 0}em`, fontSize: `${data.liveTopicFontSize ?? 36}px` }}
           >
             {data.liveTopic || "直播主题内容"}
@@ -902,7 +927,7 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
             ))
           ) : (
             <div className="flex items-center gap-4">
-               <div className="w-12 h-12 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-2xl shadow-sm pointer-events-none"></div>
+               <div className={`w-12 h-12 pointer-events-none ${brand ? '' : 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-2xl shadow-sm'}`} style={brand ? { background: accent } : undefined}></div>
                <span className={`font-black italic text-3xl tracking-tighter transition-colors duration-500 pointer-events-none ${isDark ? 'text-white' : 'text-gray-800'}`}>WaytoAGI</span>
             </div>
           )}
@@ -912,19 +937,27 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
       {/* Main Content Area */}
       <div className="flex-1 flex px-10 pb-10 gap-8 min-h-0 relative z-10">
         {/* Left: Main Visual Area (Hollow 16:9 frame) — transparent interior, background cut out behind it */}
-        <div ref={frameRef} data-export-hole="true" className="aspect-[16/9] h-full border-[3px] rounded-[32px] relative shrink-0 z-10 overflow-hidden" style={{ background: 'transparent', borderColor: accent }}>
+        <div
+          ref={frameRef}
+          data-export-hole="true"
+          data-export-hole-radius={frameRadius}
+          data-export-hole-border={frameBorder}
+          className="aspect-[16/9] h-full relative shrink-0 z-10 overflow-hidden"
+          style={{ background: 'transparent', borderStyle: 'solid', borderWidth: frameBorder, borderRadius: frameRadius, borderColor: accent }}
+        >
 
           {/* Marquee light — a bright highlight travelling around the frame edge */}
           <div
-            className="absolute pointer-events-none rounded-[32px] z-10"
+            className="absolute pointer-events-none z-10"
             style={{
               inset: 0,
-              padding: '3px',
+              borderRadius: frameRadius,
+              padding: `${frameBorder}px`,
               background: `conic-gradient(from ${marqueeAngle}deg at 50% 50%, transparent 0deg, transparent 150deg, ${hexToRgba(accent, 0)} 160deg, ${accent} 175deg, #ffffff 180deg, ${accent} 185deg, ${hexToRgba(accent, 0)} 200deg, transparent 210deg, transparent 360deg)`,
               WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
               WebkitMaskComposite: 'xor',
               maskComposite: 'exclude',
-              filter: `drop-shadow(0 0 8px ${hexToRgba(accent, 0.7)})`,
+              filter: brand ? 'none' : `drop-shadow(0 0 8px ${hexToRgba(accent, 0.7)})`,
             }}
           />
 
@@ -933,10 +966,10 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
           </div>
           
           {/* Corner Accents */}
-          <div className="absolute top-5 left-5 w-10 h-10 border-t-[3px] border-l-[3px] rounded-tl-lg" style={{ borderColor: hexToRgba(accent, 0.6) }}></div>
-          <div className="absolute top-5 right-5 w-10 h-10 border-t-[3px] border-r-[3px] rounded-tr-lg" style={{ borderColor: hexToRgba(accent, 0.6) }}></div>
-          <div className="absolute bottom-5 left-5 w-10 h-10 border-b-[3px] border-l-[3px] rounded-bl-lg" style={{ borderColor: hexToRgba(accent, 0.6) }}></div>
-          <div className="absolute bottom-5 right-5 w-10 h-10 border-b-[3px] border-r-[3px] rounded-br-lg" style={{ borderColor: hexToRgba(accent, 0.6) }}></div>
+          <div className={`absolute top-5 left-5 w-10 h-10 border-t-[3px] border-l-[3px] ${brand ? '' : 'rounded-tl-lg'}`} style={{ borderColor: brand ? accent : hexToRgba(accent, 0.6) }}></div>
+          <div className={`absolute top-5 right-5 w-10 h-10 border-t-[3px] border-r-[3px] ${brand ? '' : 'rounded-tr-lg'}`} style={{ borderColor: brand ? accent : hexToRgba(accent, 0.6) }}></div>
+          <div className={`absolute bottom-5 left-5 w-10 h-10 border-b-[3px] border-l-[3px] ${brand ? '' : 'rounded-bl-lg'}`} style={{ borderColor: brand ? accent : hexToRgba(accent, 0.6) }}></div>
+          <div className={`absolute bottom-5 right-5 w-10 h-10 border-b-[3px] border-r-[3px] ${brand ? '' : 'rounded-br-lg'}`} style={{ borderColor: brand ? accent : hexToRgba(accent, 0.6) }}></div>
         </div>
 
         {/* Right: Sidebar */}
@@ -957,8 +990,8 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
                   {data.authors.map((guest) => (
                     <div key={guest.id} className="flex flex-col items-center text-center w-full">
                       <div 
-                        className={`w-24 h-24 rounded-full overflow-hidden border-[4px] shadow-md mb-3 shrink-0 cursor-pointer transition-colors duration-500 ${isDark ? 'bg-white/5' : 'bg-gray-200'}`}
-                        style={{ borderColor: isDark ? hexToRgba(accent, 0.25) : hexToRgba(accent, 0.35) }}
+                        className={`w-24 h-24 ${roundedFull} overflow-hidden mb-3 shrink-0 cursor-pointer transition-colors duration-500 ${brand ? 'border-[4px]' : 'border-[4px] shadow-md'} ${isDark ? 'bg-white/5' : 'bg-gray-200'}`}
+                        style={{ borderColor: brand ? accent : isDark ? hexToRgba(accent, 0.25) : hexToRgba(accent, 0.35) }}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => {
                           e.preventDefault();
@@ -1029,7 +1062,10 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
 
           {/* QR Code Area */}
           <div className="mt-6 flex flex-col items-center shrink-0">
-            <div className={`w-36 h-36 p-3 rounded-2xl border-2 shadow-sm relative mb-3 transition-colors duration-500 ${isDark ? 'bg-white/5' : 'bg-white'}`} style={{ borderColor: isDark ? hexToRgba(accent, 0.2) : hexToRgba(accent, 0.25) }}>
+            <div
+              className={`w-36 h-36 p-3 relative mb-3 transition-colors duration-500 ${brand ? 'border-[3px]' : 'rounded-2xl border-2 shadow-sm'} ${isDark ? 'bg-white/5' : 'bg-white'}`}
+              style={{ borderColor: brand ? accent : isDark ? hexToRgba(accent, 0.2) : hexToRgba(accent, 0.25) }}
+            >
               {data.qrCode1 ? (
                 <img src={data.qrCode1} alt="QR" crossOrigin="anonymous" className="w-full h-full object-contain" style={{ transform: 'scale(1.15)', transformOrigin: 'center' }} />
               ) : (
@@ -1049,23 +1085,11 @@ const LivestreamTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, sc
 });
 
 // 4. Classroom / Course Poster (16:9) — hollow transparent frame, section tabs, vertical guest rail
-// `variant="brand"` renders the same layout as 名片5 in the WaytoAGI brand style:
-// flat colour blocks, square corners, geometric sans-serif.
-type ClassroomVariant = 'classic' | 'brand';
-const BRAND_FONT = `'Outfit', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif`;
-
-const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?: ClassroomVariant }>(({ data, scale = 1, onUpdateData, isExporting = false, variant = 'classic' }, ref) => {
-  const brand = variant === 'brand';
-  const presets = brand ? CARD5_BG_PRESETS : CLASSROOM_BG_PRESETS;
-  const defaultBgKey = brand ? 'brand' : 'campus';
-  const bgKey = data.classBgStyle || defaultBgKey;
-  const bgPreset = presets[bgKey] ?? presets[defaultBgKey];
+const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps>(({ data, scale = 1, onUpdateData, isExporting = false }, ref) => {
+  const bgKey = data.classBgStyle || 'campus';
+  const bgPreset = CLASSROOM_BG_PRESETS[bgKey] ?? CLASSROOM_BG_PRESETS['campus'];
   const isDark = bgPreset.isDark;
   const accent = bgPreset.accent || '#c8794a';
-  const ink = isDark ? '#ffffff' : '#000000';
-  // Brand style: square corners and flat 4px strokes. Classic: rounded corners.
-  const frameRadius = brand ? 0 : 32;
-  const frameBorder = brand ? 4 : 3;
 
   const [selectedLogo, setSelectedLogo] = useState<number | null>(null);
 
@@ -1115,7 +1139,7 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?:
   // SVG mask that keeps the whole card visible EXCEPT a rounded-rect hole where the frame sits
   const holeMask = hole
     ? `url("data:image/svg+xml,${encodeURIComponent(
-        `<svg xmlns='http://www.w3.org/2000/svg' width='1440' height='810'><defs><mask id='m'><rect width='1440' height='810' fill='white'/><rect x='${hole.x}' y='${hole.y}' width='${hole.w}' height='${hole.h}' rx='${frameRadius}' ry='${frameRadius}' fill='black'/></mask></defs><rect width='1440' height='810' fill='white' mask='url(#m)'/></svg>`
+        `<svg xmlns='http://www.w3.org/2000/svg' width='1440' height='810'><defs><mask id='m'><rect width='1440' height='810' fill='white'/><rect x='${hole.x}' y='${hole.y}' width='${hole.w}' height='${hole.h}' rx='32' ry='32' fill='black'/></mask></defs><rect width='1440' height='810' fill='white' mask='url(#m)'/></svg>`
       )}")`
     : undefined;
   const maskStyle: React.CSSProperties = holeMask
@@ -1214,7 +1238,7 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?:
       ref={setRefs}
       data-card-root
       className={`w-[1440px] h-[810px] shadow-2xl relative overflow-hidden flex flex-col font-sans transition-colors duration-500 ${isDark ? 'text-white' : 'text-gray-900'}`}
-      style={{ transform: `scale(${scale})`, transformOrigin: 'top left', ...(brand ? { fontFamily: BRAND_FONT } : {}) }}
+      style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
     >
       {/* Background (masked so the frame interior is cut out / transparent on export) */}
       <div className="absolute inset-0 z-0" style={{ background: bgPreset.bg, ...maskStyle }}>
@@ -1232,23 +1256,14 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?:
       {/* Effect overlay */}
       <EffectOverlay effectId={data.overlayEffect} emoji={data.emojiPattern} />
 
-      {/* Brand colour strip — flat blocks echoing the stepped brand mark */}
-      {brand && bgPreset.palette && (
-        <div className="absolute top-0 left-0 right-0 h-3 flex z-20 pointer-events-none">
-          {bgPreset.palette.map((c, i) => (
-            <div key={i} style={{ background: c.bg, flex: i === 0 ? 3 : 1 }} />
-          ))}
-        </div>
-      )}
-
       {/* Top Header: Title + brand logos */}
       <div className="px-12 pt-8 pb-4 flex items-start justify-between gap-8 z-20 relative">
         <h1
-          className={`${brand ? 'font-extrabold tracking-tight' : 'font-black'} leading-tight max-w-[1000px]`}
+          className="font-black leading-tight max-w-[1000px]"
           style={{
             fontSize: `${data.classTitleFontSize ?? 44}px`,
-            color: brand ? ink : isDark ? '#ffffff' : '#3a2a1a',
-            textShadow: brand ? 'none' : isDark ? '0 2px 12px rgba(0,0,0,0.5)' : '0 2px 8px rgba(255,255,255,0.6)',
+            color: isDark ? '#ffffff' : '#3a2a1a',
+            textShadow: isDark ? '0 2px 12px rgba(0,0,0,0.5)' : '0 2px 8px rgba(255,255,255,0.6)',
           }}
         >
           {data.classTitle || '课堂主标题'}
@@ -1285,40 +1300,26 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?:
               </div>
             ))
           ) : (
-            <div className={`w-14 h-14 ${brand ? '' : 'rounded-2xl bg-gradient-to-tr from-orange-400 to-amber-600 shadow-sm'} pointer-events-none`} style={brand ? { background: accent } : undefined} />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-400 to-amber-600 shadow-sm pointer-events-none" />
           )}
         </div>
       </div>
 
       {/* Section tabs bar */}
       <div className="mx-12 mb-4 z-20 relative">
-        {brand ? (
-          // Brand: flat adjacent colour blocks, cycling through the brand palette
-          <div className="flex items-stretch flex-wrap">
-            {sections.map((sec, i) => {
-              const c = bgPreset.palette?.[i % (bgPreset.palette?.length || 1)] ?? { bg: accent, fg: readableOn(accent) };
-              return (
-                <span key={i} className="font-bold text-lg whitespace-nowrap px-6 py-3" style={{ background: c.bg, color: c.fg }}>
-                  {sec}
-                </span>
-              );
-            })}
-          </div>
-        ) : (
-          <div
-            className="flex items-center flex-wrap gap-x-1 gap-y-2 rounded-2xl px-6 py-3 shadow-sm"
-            style={{ background: accent }}
-          >
-            {sections.map((sec, i) => (
-              <React.Fragment key={i}>
-                <span className="text-white font-bold text-lg whitespace-nowrap px-1">{sec}</span>
-                {i < sections.length - 1 && (
-                  <span className="text-white/50 font-light text-lg select-none px-1">丨</span>
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        )}
+        <div
+          className="flex items-center flex-wrap gap-x-1 gap-y-2 rounded-2xl px-6 py-3 shadow-sm"
+          style={{ background: accent }}
+        >
+          {sections.map((sec, i) => (
+            <React.Fragment key={i}>
+              <span className="text-white font-bold text-lg whitespace-nowrap px-1">{sec}</span>
+              {i < sections.length - 1 && (
+                <span className="text-white/50 font-light text-lg select-none px-1">丨</span>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
 
       {/* Main area: transparent frame (left) + vertical guest rail (right) */}
@@ -1327,16 +1328,8 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?:
         <div
           ref={frameRef}
           data-export-hole="true"
-          data-export-hole-radius={frameRadius}
-          data-export-hole-border={frameBorder}
-          className="flex-1 h-full relative overflow-hidden"
-          style={{
-            background: 'transparent',
-            borderStyle: 'solid',
-            borderWidth: frameBorder,
-            borderRadius: frameRadius,
-            borderColor: brand ? accent : hexToRgba(accent, 0.55),
-          }}
+          className="flex-1 h-full rounded-[32px] border-[3px] relative overflow-hidden"
+          style={{ background: 'transparent', borderColor: hexToRgba(accent, 0.55) }}
         >
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <ImageIcon size={72} style={{ color: isDark ? '#ffffff' : accent, opacity: 0.08 }} />
@@ -1346,10 +1339,7 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?:
         {/* Right column: guest rail + QR */}
         <div className="w-[220px] shrink-0 flex flex-col gap-5">
           {/* Guest rail */}
-          {(() => {
-            const onAccent = brand ? readableOn(accent) : '#ffffff';
-            return (
-          <div className={`${brand ? '' : 'rounded-3xl'} px-3 py-5 flex-1 overflow-hidden`} style={{ background: accent }}>
+          <div className="rounded-3xl px-3 py-5 flex-1 overflow-hidden" style={{ background: accent }}>
             {data.authors && data.authors.length > 0 ? (
               (() => {
                 const twoCol = data.authors.length >= 4;
@@ -1360,23 +1350,22 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?:
                     {data.authors.map((guest) => (
                       <div key={guest.id} className="flex flex-col items-center text-center w-full min-w-0">
                         <div
-                          className={`${avatarSize} ${brand ? '' : 'rounded-full shadow-md border-white/70'} overflow-hidden border-[3px] shrink-0 cursor-pointer`}
-                          style={brand ? { borderColor: onAccent, background: 'rgba(255,255,255,0.2)' } : { background: 'rgba(255,255,255,0.2)' }}
+                          className={`${avatarSize} rounded-full overflow-hidden border-[3px] border-white/70 shadow-md shrink-0 cursor-pointer bg-white/20`}
                           {...handleGuestImage(guest.id)}
                         >
                           {guest.image ? (
                             <img src={guest.image} alt={guest.name} crossOrigin="anonymous" className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center" style={{ color: onAccent, opacity: 0.7 }}>
+                            <div className="w-full h-full flex items-center justify-center text-white/70">
                               <User size={iconSize} />
                             </div>
                           )}
                         </div>
-                        <span className={`font-bold ${twoCol ? 'text-xs' : 'text-sm'} mt-1.5 truncate w-full px-1`} style={{ color: onAccent }}>
+                        <span className={`text-white font-bold ${twoCol ? 'text-xs' : 'text-sm'} mt-1.5 truncate w-full px-1`}>
                           {guest.name || '@嘉宾'}
                         </span>
                         {guest.title && (
-                          <span className="text-[10px] leading-tight truncate w-full px-1" style={{ color: onAccent, opacity: 0.8 }}>{guest.title}</span>
+                          <span className="text-white/80 text-[10px] leading-tight truncate w-full px-1">{guest.title}</span>
                         )}
                       </div>
                     ))}
@@ -1384,21 +1373,16 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?:
                 );
               })()
             ) : (
-              <div className="flex flex-col items-center justify-center py-8" style={{ color: onAccent, opacity: 0.6 }}>
+              <div className="flex flex-col items-center justify-center py-8 text-white/60">
                 <User size={40} />
                 <span className="text-[11px] font-black mt-3 uppercase tracking-widest">No Guests</span>
               </div>
             )}
           </div>
-            );
-          })()}
 
           {/* QR block */}
-          <div
-            className={`${brand ? 'border-[3px]' : 'rounded-2xl shadow-md'} bg-white p-3 flex items-center gap-3 shrink-0`}
-            style={brand ? { borderColor: accent } : undefined}
-          >
-            <div className={`w-[115px] h-[115px] ${brand ? '' : 'rounded-lg'} overflow-hidden shrink-0 flex items-center justify-center bg-gray-50`}>
+          <div className="rounded-2xl bg-white shadow-md p-3 flex items-center gap-3 shrink-0">
+            <div className="w-[115px] h-[115px] rounded-lg overflow-hidden shrink-0 flex items-center justify-center bg-gray-50">
               {data.qrCode1 ? (
                 <img src={data.qrCode1} alt="QR" crossOrigin="anonymous" className="w-full h-full object-contain" />
               ) : (
@@ -1406,7 +1390,7 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?:
               )}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className={`${brand ? 'font-extrabold' : 'font-black'} text-sm`} style={{ color: brand ? '#000000' : accent }}>{data.qr1Text || '扫码进群'}</span>
+              <span className="font-black text-sm" style={{ color: accent }}>{data.qr1Text || '扫码进群'}</span>
               <span className="text-[11px] text-gray-500 leading-tight mt-0.5 break-words">{data.qrSubText || ''}</span>
             </div>
           </div>
@@ -1416,9 +1400,9 @@ const ClassroomTemplate = forwardRef<HTMLDivElement, TemplateProps & { variant?:
   );
 });
 
-// 5. 名片5 — Classroom layout in the WaytoAGI brand style (flat blocks, square corners, geometric sans)
+// 5. 名片5 — Live Stream layout in the WaytoAGI brand style (flat blocks, square corners, geometric sans)
 const Card5Template = forwardRef<HTMLDivElement, TemplateProps>((props, ref) => (
-  <ClassroomTemplate {...props} ref={ref} variant="brand" />
+  <LivestreamTemplate {...props} ref={ref} variant="brand" />
 ));
 
 export const getTemplateComponent = (id: TemplateId) => {
