@@ -394,13 +394,13 @@ export const CARD5_BG_PRESETS: Record<string, BgPreset> = {
     palette: brandPalette('blue'),
   },
   'brand-night': {
-    label: '夜课',
-    bg: '#0a0a0a',
-    shadowColor: '#0a0a0a',
+    label: '紫调',
+    bg: '#ffffff',
+    shadowColor: '#ffffff',
     grainOpacity: 0,
-    isDark: true,
+    isDark: false,
     accent: BRAND_COLORS.purple,
-    accentSoft: '#e6d6ff',
+    accentSoft: '#ece0ff',
     palette: brandPalette('purple'),
   },
 };
