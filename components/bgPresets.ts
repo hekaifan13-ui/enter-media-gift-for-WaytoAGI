@@ -9,6 +9,7 @@ export interface BgPreset {
   glowB?: string;  // bottom-right radial glow rgba
   accent?: string;     // main accent color (hex) — frames, badges, corners, glow
   accentSoft?: string; // soft accent tint (hex) — used as topic-bar container fill in light mode
+  palette?: { bg: string; fg: string }[]; // optional multi-colour block palette (brand style tabs)
 }
 
 // Card 1 (Modern) footer background presets — all light tones
@@ -326,4 +327,85 @@ export const CLASSROOM_BG_PRESETS: Record<string, BgPreset> = {
     accent: '#7aa5e6',
     accentSoft: '#c3d6f0',
   },
+};
+
+// ---- Card 5 (WaytoAGI brand style) --------------------------------------
+// Flat colour blocks taken from the brand mark. Same four colour schemes as Card 4,
+// re-expressed in the brand palette (no gradients, glows or grain).
+export const BRAND_COLORS = {
+  orange: '#ff4a00',
+  green: '#00a35c',
+  blue: '#0066e0',
+  purple: '#bf8fff',
+  cyan: '#00c2ff',
+} as const;
+
+/** Picks black or white text for a flat colour block (white only when contrast >= 3:1). */
+export function readableOn(hex: string): string {
+  const h = hex.replace('#', '');
+  const ch = [0, 2, 4].map((i) => {
+    const v = parseInt(h.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  const lum = 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+  return 1.05 / (lum + 0.05) >= 3 ? '#ffffff' : '#000000';
+}
+
+// Rotates the brand colours so a preset's own accent comes first
+function brandPalette(first: keyof typeof BRAND_COLORS): { bg: string; fg: string }[] {
+  const order: (keyof typeof BRAND_COLORS)[] = ['orange', 'blue', 'green', 'purple', 'cyan'];
+  const start = order.indexOf(first);
+  return [...order.slice(start), ...order.slice(0, start)].map((k) => ({
+    bg: BRAND_COLORS[k],
+    fg: readableOn(BRAND_COLORS[k]),
+  }));
+}
+
+// Card 5 presets: the 4 Card 4 colour schemes in brand colours, plus every Card 4 preset itself
+const BRAND_ONLY_PRESETS: Record<string, BgPreset> = {
+  'brand': {
+    label: '品牌',
+    bg: '#ffffff',
+    shadowColor: '#ffffff',
+    grainOpacity: 0,
+    isDark: false,
+    accent: BRAND_COLORS.orange,
+    accentSoft: '#ffe4d9',
+    palette: brandPalette('orange'),
+  },
+  'brand-green': {
+    label: '青竹·品牌',
+    bg: '#f3faf6',
+    shadowColor: '#f3faf6',
+    grainOpacity: 0,
+    isDark: false,
+    accent: BRAND_COLORS.green,
+    accentSoft: '#d4efe0',
+    palette: brandPalette('green'),
+  },
+  'brand-blue': {
+    label: '晴空·品牌',
+    bg: '#f2f7ff',
+    shadowColor: '#f2f7ff',
+    grainOpacity: 0,
+    isDark: false,
+    accent: BRAND_COLORS.blue,
+    accentSoft: '#d6e6fb',
+    palette: brandPalette('blue'),
+  },
+  'brand-night': {
+    label: '夜课·品牌',
+    bg: '#0a0a0a',
+    shadowColor: '#0a0a0a',
+    grainOpacity: 0,
+    isDark: true,
+    accent: BRAND_COLORS.purple,
+    accentSoft: '#e6d6ff',
+    palette: brandPalette('purple'),
+  },
+};
+
+export const CARD5_BG_PRESETS: Record<string, BgPreset> = {
+  ...BRAND_ONLY_PRESETS,
+  ...CLASSROOM_BG_PRESETS,
 };

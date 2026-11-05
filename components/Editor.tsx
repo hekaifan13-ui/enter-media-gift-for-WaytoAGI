@@ -3,7 +3,7 @@ import React, { useRef, useState, DragEvent, ClipboardEvent, useEffect } from 'r
 import { PostcardData, TemplateId, Author, ProjectAllData } from '../types';
 import { DEFAULT_LOGOS, DEFAULT_LOGO_SCALE } from '../constants';
 import { getTemplateComponent } from './CardTemplates';
-import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS, CLASSROOM_BG_PRESETS } from './bgPresets';
+import { FOOTER_BG_PRESETS, LIVESTREAM_BG_PRESETS, CLASSROOM_BG_PRESETS, CARD5_BG_PRESETS } from './bgPresets';
 import { OVERLAY_EFFECTS } from './overlayEffects';
 import { 
   Image as ImageIcon, Download, ArrowLeft, Wand2, RefreshCw, Save, ExternalLink,
@@ -81,6 +81,9 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
   const [dragLogoIndex, setDragLogoIndex] = useState<number | null>(null);
 
   const ActiveTemplate = getTemplateComponent(data.templateId);
+  const isClassroomLike = data.templateId === TemplateId.CLASSROOM || data.templateId === TemplateId.CARD5;
+  const classPresets = data.templateId === TemplateId.CARD5 ? CARD5_BG_PRESETS : CLASSROOM_BG_PRESETS;
+  const defaultClassBg = data.templateId === TemplateId.CARD5 ? 'brand' : 'campus';
 
   // Helper to determine aspect ratio based on template and field
   const getAspectRatio = (key: keyof PostcardData): number => {
@@ -322,9 +325,9 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
           let y = ((holeRect.top - cardRect.top) / cardRect.height) * canvas.height;
           let w = (holeRect.width / cardRect.width) * canvas.width;
           let h = (holeRect.height / cardRect.height) * canvas.height;
-          // Frame has a 3px border + rounded-[32px] corners (design px → bitmap px).
-          const bw = 3 * pr;
-          const r = Math.max(0, 32 * pr - bw);
+          // Frame border + corner radius (design px → bitmap px); read from the frame so each template can differ.
+          const bw = Number(hole.dataset.exportHoleBorder ?? 3) * pr;
+          const r = Math.max(0, Number(hole.dataset.exportHoleRadius ?? 32) * pr - bw);
           // Inset by the border width so the coloured frame stroke is preserved.
           x += bw; y += bw; w -= bw * 2; h -= bw * 2;
 
@@ -457,7 +460,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
      if (isCanvasMode) return data.templateId === TemplateId.CODE ? 0.875 : 1;
      if (data.templateId === TemplateId.MODERN) return 0.48;
      if (data.templateId === TemplateId.LIVESTREAM) return 0.48;
-     if (data.templateId === TemplateId.CLASSROOM) return 0.48;
+     if (data.templateId === TemplateId.CLASSROOM || data.templateId === TemplateId.CARD5) return 0.48;
      if (data.templateId === TemplateId.CODE) return 0.525; // 0.6 * 0.875
      return 0.6;
   };
@@ -466,7 +469,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
     if (data.templateId === TemplateId.MODERN) return 'translate-y-[300px] translate-x-[130px]';
     if (data.templateId === TemplateId.CODE) return 'translate-y-[300px] translate-x-[300px]';
     if (data.templateId === TemplateId.LIVESTREAM) return 'translate-y-[300px] translate-x-[300px]';
-    if (data.templateId === TemplateId.CLASSROOM) return 'translate-y-[300px] translate-x-[300px]';
+    if (data.templateId === TemplateId.CLASSROOM || data.templateId === TemplateId.CARD5) return 'translate-y-[300px] translate-x-[300px]';
     return 'translate-y-[300px] translate-x-[100px]';
   };
 
@@ -536,7 +539,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
           </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-          {data.templateId !== TemplateId.LIVESTREAM && data.templateId !== TemplateId.CLASSROOM && (
+          {data.templateId !== TemplateId.LIVESTREAM && !isClassroomLike && (
             <section>
               <div className="flex justify-between items-end mb-3">
                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
@@ -834,7 +837,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
             </section>
           )}
 
-          {data.templateId === TemplateId.CLASSROOM && (
+          {isClassroomLike && (
             <section className="space-y-4 border-b border-gray-100 pb-6">
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full bg-orange-400"></span>
@@ -916,12 +919,12 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
               <div className="space-y-2 pt-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Card Background</label>
                 <div className="grid grid-cols-4 gap-2">
-                  {Object.entries(CLASSROOM_BG_PRESETS).map(([key, preset]) => (
+                  {Object.entries(classPresets).map(([key, preset]) => (
                     <button
                       key={key}
                       title={preset.label}
                       onClick={() => updateData('classBgStyle', key)}
-                      className={`h-10 rounded-xl border-2 transition-all flex items-end justify-start p-1.5 overflow-hidden ${(data.classBgStyle || 'campus') === key ? 'border-orange-500 shadow-md scale-[1.04]' : 'border-transparent hover:border-orange-200'}`}
+                      className={`h-10 rounded-xl border-2 transition-all flex items-end justify-start p-1.5 overflow-hidden ${(data.classBgStyle || defaultClassBg) === key ? 'border-orange-500 shadow-md scale-[1.04]' : 'border-transparent hover:border-orange-200'}`}
                       style={{ background: preset.bg }}
                     >
                       <span className={`text-[9px] font-black tracking-wide truncate leading-none ${preset.isDark ? 'text-white/80' : 'text-gray-700/80'}`}>
@@ -958,7 +961,7 @@ const Editor: React.FC<EditorProps> = ({ data, updateData, onBack, projectId, pr
             </section>
           )}
 
-          {data.templateId === TemplateId.CLASSROOM && (
+          {isClassroomLike && (
             <>
               <section className="space-y-4 border-b border-gray-100 pb-6">
                 <div className="flex justify-between items-center">

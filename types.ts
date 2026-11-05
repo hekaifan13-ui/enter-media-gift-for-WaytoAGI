@@ -14,7 +14,8 @@ export enum TemplateId {
   MODERN = 'MODERN',   // Full bleed, bold text
   CODE = 'CODE',            // VS Code style
   LIVESTREAM = 'LIVESTREAM', // Live stream announcement
-  CLASSROOM = 'CLASSROOM' // Classroom / course poster
+  CLASSROOM = 'CLASSROOM', // Classroom / course poster
+  CARD5 = 'CARD5'           // 名片5: Classroom layout in WaytoAGI brand style
 }
 
 export interface Author {
@@ -70,6 +71,7 @@ export interface TemplateConfig {
   name: string;
   description: string;
   previewColor: string;
+  isNew?: boolean; // shows a NEW badge on the template card in the opened box
 }
 
 // One project stores data for ALL three templates

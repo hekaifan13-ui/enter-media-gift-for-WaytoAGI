@@ -3,7 +3,7 @@ import { AppState, TemplateId } from '../types';
 import { TEMPLATES } from '../constants';
 import { 
   Sparkles, MousePointerClick, Code, Image as ImageIcon, Box,
-  X, LayoutGrid, GraduationCap
+  X, LayoutGrid, GraduationCap, Shapes
 } from 'lucide-react';
 
 interface IntroBoxProps {
@@ -57,6 +57,7 @@ const IntroBox: React.FC<IntroBoxProps> = ({ onOpen, onClose, onSelectTemplate, 
       case TemplateId.CODE: return <Code size={16} className="text-blue-500" />;
       case TemplateId.LIVESTREAM: return <Sparkles size={16} className="text-indigo-500" />;
       case TemplateId.CLASSROOM: return <GraduationCap size={16} className="text-orange-500" />;
+      case TemplateId.CARD5: return <Shapes size={16} className="text-blue-600" />;
       default: return <ImageIcon size={16} className="text-gray-500" />;
     }
   };
@@ -151,6 +152,16 @@ const IntroBox: React.FC<IntroBoxProps> = ({ onOpen, onClose, onSelectTemplate, 
              </div>
           </div>
         </div>
+        
+        {/* NEW badge */}
+        {template.isNew && (
+          <span
+            className="absolute -top-2 -right-2 z-10 px-2.5 py-1 text-[10px] font-black tracking-widest leading-none shadow-lg pointer-events-none"
+            style={{ background: '#ff4a00', color: '#ffffff', fontFamily: "'Outfit', 'Montserrat', sans-serif" }}
+          >
+            NEW
+          </span>
+        )}
         
         {/* Shadow on floor when floating */}
         {isHovered && (

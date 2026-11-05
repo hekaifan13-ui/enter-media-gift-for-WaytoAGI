@@ -4,12 +4,13 @@ import { enterDevPlugin, enterProdPlugin } from 'vite-plugin-enter-dev';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
+    const plugins = [...enterProdPlugin(), ...enterDevPlugin()];
     return {
       server: {
         port: 3000,
         host: '0.0.0.0',
       },
-      plugins: [...enterProdPlugin(), ...enterDevPlugin()],
+      plugins,
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Layout, Search, Clock, AlertTriangle, Sparkles } from 'lucide-react';
 import { ProjectMeta, getProjects, deleteProject } from '../services/storageService';
+import { TEMPLATES } from '../constants';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ProjectListProps {
@@ -231,7 +232,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ onNewProject, onLoadProject, 
                         <div className="flex justify-between items-center mt-auto">
                           <span className="text-[12px] text-[#666666] font-normal flex items-center gap-1">
                             <Clock size={11} />
-                            3 Templates
+                             {TEMPLATES.length} Templates
                           </span>
                           <button
                             onClick={(e) => handleDelete(e, project)}

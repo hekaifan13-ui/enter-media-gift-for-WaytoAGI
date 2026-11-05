@@ -22,7 +22,7 @@ importers:
         version: 0.555.0(react@19.2.5)
       motion:
         specifier: ^12.34.3
-        version: 12.38.0(react-dom@19.2.5)(react@19.2.5)
+        version: 12.38.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       react:
         specifier: ^19.2.0
         version: 19.2.5
@@ -31,17 +31,17 @@ importers:
         version: 19.2.5(react@19.2.5)
       react-zoom-pan-pinch:
         specifier: ^3.7.0
-        version: 3.7.0(react-dom@19.2.5)(react@19.2.5)
+        version: 3.7.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       vite-plugin-enter-dev:
-        specifier: ^0.0.8
-        version: 0.0.8(vite@6.4.2)
+        specifier: ^0.0.17
+        version: 0.0.17(vite@6.4.2(@types/node@22.19.17))
     devDependencies:
       '@types/node':
         specifier: ^22.14.0
         version: 22.19.17
       '@vitejs/plugin-react':
         specifier: ^5.0.0
-        version: 5.2.0(vite@6.4.2)
+        version: 5.2.0(vite@6.4.2(@types/node@22.19.17))
       typescript:
         specifier: ~5.8.2
         version: 5.8.3
@@ -398,66 +398,79 @@ packages:
     resolution: {integrity: sha512-2QxQrM+KQ7DAW4o22j+XZ6RKdxjLD7BOWTP0Bv0tmjdyhXSsr2Ul1oJDQqh9Zf5qOwTuTc7Ek83mOFaKnodPjg==}
     cpu: [arm]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm-musleabihf@4.60.2':
     resolution: {integrity: sha512-TbziEu2DVsTEOPif2mKWkMeDMLoYjx95oESa9fkQQK7r/Orta0gnkcDpzwufEcAO2BLBsD7mZkXGFqEdMRRwfw==}
     cpu: [arm]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-arm64-gnu@4.60.2':
     resolution: {integrity: sha512-bO/rVDiDUuM2YfuCUwZ1t1cP+/yqjqz+Xf2VtkdppefuOFS2OSeAfgafaHNkFn0t02hEyXngZkxtGqXcXwO8Rg==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.60.2':
     resolution: {integrity: sha512-hr26p7e93Rl0Za+JwW7EAnwAvKkehh12BU1Llm9Ykiibg4uIr2rbpxG9WCf56GuvidlTG9KiiQT/TXT1yAWxTA==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-loong64-gnu@4.60.2':
     resolution: {integrity: sha512-pOjB/uSIyDt+ow3k/RcLvUAOGpysT2phDn7TTUB3n75SlIgZzM6NKAqlErPhoFU+npgY3/n+2HYIQVbF70P9/A==}
     cpu: [loong64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-loong64-musl@4.60.2':
     resolution: {integrity: sha512-2/w+q8jszv9Ww1c+6uJT3OwqhdmGP2/4T17cu8WuwyUuuaCDDJ2ojdyYwZzCxx0GcsZBhzi3HmH+J5pZNXnd+Q==}
     cpu: [loong64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-ppc64-gnu@4.60.2':
     resolution: {integrity: sha512-11+aL5vKheYgczxtPVVRhdptAM2H7fcDR5Gw4/bTcteuZBlH4oP9f5s9zYO9aGZvoGeBpqXI/9TZZihZ609wKw==}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-ppc64-musl@4.60.2':
     resolution: {integrity: sha512-i16fokAGK46IVZuV8LIIwMdtqhin9hfYkCh8pf8iC3QU3LpwL+1FSFGej+O7l3E/AoknL6Dclh2oTdnRMpTzFQ==}
     cpu: [ppc64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-riscv64-gnu@4.60.2':
     resolution: {integrity: sha512-49FkKS6RGQoriDSK/6E2GkAsAuU5kETFCh7pG4yD/ylj9rKhTmO3elsnmBvRD4PgJPds5W2PkhC82aVwmUcJ7A==}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-musl@4.60.2':
     resolution: {integrity: sha512-mjYNkHPfGpUR00DuM1ZZIgs64Hpf4bWcz9Z41+4Q+pgDx73UwWdAYyf6EG/lRFldmdHHzgrYyge5akFUW0D3mQ==}
     cpu: [riscv64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-s390x-gnu@4.60.2':
     resolution: {integrity: sha512-ALyvJz965BQk8E9Al/JDKKDLH2kfKFLTGMlgkAbbYtZuJt9LU8DW3ZoDMCtQpXAltZxwBHevXz5u+gf0yA0YoA==}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-gnu@4.60.2':
     resolution: {integrity: sha512-UQjrkIdWrKI626Du8lCQ6MJp/6V1LAo2bOK9OTu4mSn8GGXIkPXk/Vsp4bLHCd9Z9Iz2OTEaokUE90VweJgIYQ==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-musl@4.60.2':
     resolution: {integrity: sha512-bTsRGj6VlSdn/XD4CGyzMnzaBs9bsRxy79eTqTCBsA8TMIEky7qg48aPkvJvFe1HyzQ5oMZdg7AnVlWQSKLTnw==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-openbsd-x64@4.60.2':
     resolution: {integrity: sha512-6d4Z3534xitaA1FcMWP7mQPq5zGwBmGbhphh2DwaA1aNIXUu3KTOfwrWpbwI4/Gr0uANo7NTtaykFyO2hPuFLg==}
@@ -826,10 +839,10 @@ packages:
     peerDependencies:
       browserslist: '>= 4.21.0'
 
-  vite-plugin-enter-dev@0.0.8:
-    resolution: {integrity: sha512-WroAMF4QlHNxa+CMOwEdHmJZzFNf4c4EUEEbZZt9qeoEgHuwaLv65NKK0jJKUKGxaTmvgMjx2qjEPGSNFlw0Pg==}
+  vite-plugin-enter-dev@0.0.17:
+    resolution: {integrity: sha512-4gGTVGiaCwmtJ2Q6hZLoziq8FOwuiMjdd2Voqm6A5fN+6YILJZpYDp2E9sYL+ycK1IwJd05B8O49qt0/Ul1cbQ==}
     peerDependencies:
-      vite: ^5.0.0 || ^6.0.0
+      vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
 
   vite@6.4.2:
     resolution: {integrity: sha512-2N/55r4JDJ4gdrCvGgINMy+HH3iRpNIz8K6SFwVsA+JbQScLiC+clmAxBgwiSPgcG9U15QmvqCGWzMbqda5zGQ==}
@@ -1305,7 +1318,7 @@ snapshots:
     dependencies:
       '@types/node': 22.19.17
 
-  '@vitejs/plugin-react@5.2.0(vite@6.4.2)':
+  '@vitejs/plugin-react@5.2.0(vite@6.4.2(@types/node@22.19.17))':
     dependencies:
       '@babel/core': 7.29.0
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.29.0)
@@ -1385,7 +1398,7 @@ snapshots:
   extend@3.0.2: {}
 
   fdir@6.5.0(picomatch@4.0.4):
-    dependencies:
+    optionalDependencies:
       picomatch: 4.0.4
 
   fetch-blob@3.2.0:
@@ -1397,13 +1410,14 @@ snapshots:
     dependencies:
       fetch-blob: 3.2.0
 
-  framer-motion@12.38.0(react-dom@19.2.5)(react@19.2.5):
+  framer-motion@12.38.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
     dependencies:
       motion-dom: 12.38.0
       motion-utils: 12.36.0
+      tslib: 2.8.1
+    optionalDependencies:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
-      tslib: 2.8.1
 
   fsevents@2.3.3:
     optional: true
@@ -1485,12 +1499,13 @@ snapshots:
 
   motion-utils@12.36.0: {}
 
-  motion@12.38.0(react-dom@19.2.5)(react@19.2.5):
+  motion@12.38.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
     dependencies:
-      framer-motion: 12.38.0(react-dom@19.2.5)(react@19.2.5)
+      framer-motion: 12.38.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      tslib: 2.8.1
+    optionalDependencies:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
-      tslib: 2.8.1
 
   ms@2.1.3: {}
 
@@ -1543,7 +1558,7 @@ snapshots:
 
   react-refresh@0.18.0: {}
 
-  react-zoom-pan-pinch@3.7.0(react-dom@19.2.5)(react@19.2.5):
+  react-zoom-pan-pinch@3.7.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
     dependencies:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
@@ -1608,16 +1623,16 @@ snapshots:
       escalade: 3.2.0
       picocolors: 1.1.1
 
-  vite-plugin-enter-dev@0.0.8(vite@6.4.2):
+  vite-plugin-enter-dev@0.0.17(vite@6.4.2(@types/node@22.19.17)):
     dependencies:
-      '@vitejs/plugin-react': 5.2.0(vite@6.4.2)
+      '@babel/core': 7.29.0
+      '@vitejs/plugin-react': 5.2.0(vite@6.4.2(@types/node@22.19.17))
       vite: 6.4.2(@types/node@22.19.17)
     transitivePeerDependencies:
       - supports-color
 
   vite@6.4.2(@types/node@22.19.17):
     dependencies:
-      '@types/node': 22.19.17
       esbuild: 0.25.12
       fdir: 6.5.0(picomatch@4.0.4)
       picomatch: 4.0.4
@@ -1625,6 +1640,7 @@ snapshots:
       rollup: 4.60.2
       tinyglobby: 0.2.16
     optionalDependencies:
+      '@types/node': 22.19.17
       fsevents: 2.3.3
 
   web-streams-polyfill@3.3.3: {}
